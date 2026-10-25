@@ -1,0 +1,447 @@
+{
+  "name": "icd10cm-coding-assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bed8fbda-ebd5-41a0-9593-f9d14b59ec38",
+              "name": "note",
+              "value": "={{ $json.body.note }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -800,
+        0
+      ],
+      "id": "63fd3530-a584-4de4-8231-a429bfcb3c5a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        128
+      ],
+      "id": "daa32e35-c62c-4af0-8e79-014f9312c44e",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "4uafscHQ03HINC2F",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const first = $input.first().json;\nconst raw =\n  first.output ??\n  first.text ??\n  first.response?.generations?.[0]?.[0]?.text ??\n  '';\n\nif (!raw) {\n  throw new Error('No model text found. Keys seen: ' + Object.keys(first).join(', '));\n}\n\nconst clean = String(raw).replace(/```json|```/g, '').trim();\nconst parsed = JSON.parse(clean);\n\nif (!Array.isArray(parsed.diagnoses)) {\n  throw new Error('Reply has no \"diagnoses\" array: ' + clean.slice(0, 200));\n}\n\nreturn parsed.diagnoses.map(d => ({ json: d }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        -192
+      ],
+      "id": "53833969-4360-44fa-9fd3-cb4fc29ce719",
+      "name": "Extract"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT $1::text AS search_term,\n       m.category,\n       m.category_title,\n       m.matching_codes\nFROM (\n  SELECT left(c.code, 3) AS category,\n         COALESCE(t.long_desc, '') AS category_title,\n         count(*) AS matching_codes\n  FROM icd10cm c\n  LEFT JOIN icd10cm t ON t.code = left(c.code, 3)\n  WHERE c.is_billable\n    AND to_tsvector('english', c.search_text) @@ websearch_to_tsquery('english', $1::text)\n  GROUP BY left(c.code, 3), COALESCE(t.long_desc, '')\n) m\nORDER BY m.matching_codes DESC, m.category;",
+        "options": {
+          "queryReplacement": "={{ $json.search_term }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        176,
+        -176
+      ],
+      "id": "1ea5d431-dedd-4e66-a65c-e3a5f1002cc1",
+      "name": "Find categories",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "QiexSabRdOxstsVG",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const note = $('Edit Fields').first().json.note;\nconst diagnoses = $('Extract').all().map(i => i.json);\nconst rows = $input.all().map(i => i.json);\n\nconst UNCERTAIN = /\\b(possible|possibly|probable|probably|suspected|suspect|questionable|rule out|r\\/o|likely|consistent with|compatible with|working diagnosis)\\b/i;\n\nreturn diagnoses.map(d => {\n  const cats = rows\n    .filter(r => r.search_term === d.search_term)\n    .map(r => ({ category: r.category, title: r.category_title, n: r.matching_codes }));\n\n  return {\n    json: {\n      search_term: d.search_term,\n      evidence: d.evidence,\n      evidence_exact: note.includes(d.evidence),\n      uncertain: UNCERTAIN.test(d.evidence) || UNCERTAIN.test(d.search_term),\n      note,\n      category_count: cats.length,\n      categories_text: cats\n        .map(c => `${c.category} | ${c.title} | ${c.n} matching codes`)\n        .join('\\n')\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        448
+      ],
+      "id": "5c10b0c2-a291-45ee-94c3-fe6756f68a4d",
+      "name": "Bundle categories"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are choosing an ICD-10-CM category (the first 3 characters of a code).\n\nRules:\n- Choose exactly ONE category, and it must appear in the CATEGORIES list below. Never use a category from memory.\n- Choose the category that the DIAGNOSIS and EVIDENCE support most directly.\n- Use the PATIENT NOTE to rule out categories that cannot apply to this patient (for example because of age, sex, or a condition stated in the note). Do not assume details the note does not state.\n- If the CATEGORIES list is empty, or no category is supported by the documentation, set category to null.\n- Return ONLY valid JSON, no other text, in this shape:\n{\"category\":\"...\",\"reason\":\"one short sentence\"}\n\nDIAGNOSIS: {{ $json.search_term }}\n\nEVIDENCE: {{ $json.evidence }}\n\nPATIENT NOTE: {{ $json.note }}\n\nCATEGORIES (category | title | number of matching codes):\n{{ $json.categories_text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -48,
+        240
+      ],
+      "id": "362b10e1-4159-4e8f-b1d9-a87925425a76",
+      "name": "Pick category"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        560
+      ],
+      "id": "9babd645-e529-4787-b216-d6531583085b",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "4uafscHQ03HINC2F",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const bundles = $('Bundle categories').all().map(i => i.json);\nconst picks = $input.all().map(i => i.json);\n\nreturn picks.map((p, idx) => {\n  const b = bundles[idx];\n  const flags = [];\n\n  let parsed = null;\n  try {\n    const raw = String(p.output ?? '').replace(/```json|```/g, '').trim();\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    flags.push('reply_not_valid_json');\n  }\n\n  const valid = new Set(\n    b.categories_text\n      .split('\\n')\n      .filter(l => l.includes(' | '))\n      .map(l => l.split(' | ')[0].trim())\n  );\n\n  const category = parsed?.category ?? null;\n  if (parsed && category === null) flags.push('no_category_selected');\n  if (category !== null && !valid.has(category)) flags.push('category_not_in_list');\n  if (!b.evidence_exact) flags.push('evidence_not_exact_quote');\n  if (b.uncertain) flags.push('uncertain_diagnosis_check_setting');\n  if (b.category_count === 0) flags.push('no_categories_found');\n\n  const usable = category !== null && valid.has(category) && !b.uncertain;\n\n  return {\n    json: {\n      search_term: b.search_term,\n      evidence: b.evidence,\n      category: usable ? category : '',\n      category_reason: parsed?.reason ?? null,\n      flags: flags.join(', ')\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        224
+      ],
+      "id": "d76772e8-d472-412a-9fe4-b73e012bcdd7",
+      "name": "Check category"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT $1::text AS category,\n       code,\n       long_desc,\n       count(*) OVER () AS total_in_category\nFROM icd10cm\nWHERE is_billable\n  AND left(code, 3) = $1::text\nORDER BY code\nLIMIT 200;",
+        "options": {
+          "queryReplacement": "={{ $json.category || 'NONE' }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        624,
+        240
+      ],
+      "id": "e5317194-acc2-491d-baaa-d76a5c367d4c",
+      "name": "Load codes",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "QiexSabRdOxstsVG",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const catBundles = $('Bundle categories').all().map(i => i.json);\nconst checks = $('Check category').all().map(i => i.json);\nconst rows = $input.all().map(i => i.json);\n\nreturn checks.map((c, idx) => {\n  const b = catBundles[idx];\n  const codes = c.category\n    ? rows.filter(r => r.category === c.category)\n    : [];\n  const total = codes.length ? Number(codes[0].total_in_category) : 0;\n\n  return {\n    json: {\n      search_term: c.search_term,\n      evidence: c.evidence,\n      evidence_exact: b.evidence_exact,\n      uncertain: b.uncertain,\n      note: b.note,\n      category: c.category,\n      category_flags: c.flags,\n      code_count: codes.length,\n      total_in_category: total,\n      codes_truncated: total > codes.length,\n      codes_text: codes.map(r => `${r.code} | ${r.long_desc}`).join('\\n')\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        240
+      ],
+      "id": "d415d9f5-83e0-46e8-a99e-826376cb0ad8",
+      "name": "Bundle codes"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are assigning an ICD-10-CM diagnosis code.\n\nRules:\n- Choose exactly ONE code, and it must appear in the CODES list below. Never use a code from memory.\n- Choose the most specific code that the DIAGNOSIS, EVIDENCE and PATIENT NOTE support. Do not assume any detail the note does not state (such as a complication, a body side, or a cause).\n- If the CODES list is empty, or no code is supported by the documentation, set code to null.\n- Return ONLY valid JSON, no other text, in this shape:\n{\"code\":\"...\",\"reason\":\"one short sentence\"}\n\nDIAGNOSIS: {{ $json.search_term }}\n\nEVIDENCE: {{ $json.evidence }}\n\nPATIENT NOTE: {{ $json.note }}\n\nCATEGORY: {{ $json.category }}\n\nCODES (code | description):\n{{ $json.codes_text }}",
+        "options": {
+          "batching": {
+            "batchSize": 1,
+            "delayBetweenBatches": 65000
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        976,
+        -256
+      ],
+      "id": "6450c331-b359-4691-bedc-b0d6d93e0aed",
+      "name": "Pick final code"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        992,
+        64
+      ],
+      "id": "f808b7ea-ae76-4293-8fef-69ae17537e82",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "4uafscHQ03HINC2F",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const bundles = $('Bundle codes').all().map(i => i.json);\nconst picks = $input.all().map(i => i.json);\n\nconst normalize = c => String(c).replace(/[.\\s]/g, '').toUpperCase();\n\nreturn picks.map((p, idx) => {\n  const b = bundles[idx];\n  const flags = new Set(\n    String(b.category_flags || '').split(',').map(s => s.trim()).filter(Boolean)\n  );\n\n  let parsed = null;\n  try {\n    const raw = String(p.output ?? '').replace(/```json|```/g, '').trim();\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    flags.add('reply_not_valid_json');\n  }\n\n  const codes = new Map(\n    String(b.codes_text || '')\n      .split('\\n')\n      .filter(l => l.includes(' | '))\n      .map(l => {\n        const [code, ...rest] = l.split(' | ');\n        return [code.trim(), rest.join(' | ').trim()];\n      })\n  );\n\n  const modelCode = parsed?.code ?? null;\n  const normalized = modelCode !== null ? normalize(modelCode) : null;\n  const inList = normalized !== null && codes.has(normalized);\n\n  if (parsed && modelCode === null) flags.add('no_code_selected');\n  if (modelCode !== null && !inList) flags.add('code_not_in_list');\n  if (!b.evidence_exact) flags.add('evidence_not_exact_quote');\n  if (b.uncertain) flags.add('uncertain_diagnosis_check_setting');\n  if (b.codes_truncated) flags.add('codes_truncated');\n\n  const finalCode = inList && !b.uncertain ? normalized : null;\n\n  return {\n    json: {\n      diagnosis: b.search_term,\n      evidence: b.evidence,\n      model_code: modelCode,\n      final_code: finalCode,\n      description: finalCode ? codes.get(finalCode) : null,\n      reason: parsed?.reason ?? null,\n      status: finalCode && flags.size === 0 ? 'OK' : 'REVIEW',\n      flags: [...flags].join(', ')\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        -256
+      ],
+      "id": "a8c2e1ce-8dc6-4242-beeb-621419f6046f",
+      "name": "Final check"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\nExtract the diagnoses that the provider documented as present or assessed in the clinical note below.\nRules:\n- Exclude anything ruled out, negated, or only mentioned as absent.\n- search_term: the diagnosis in plain medical words, including any specificity the note states (type, acuity, cause, severity, body site, laterality, and phrases such as \"without complications\"). Expand abbreviations. Do not add details the note does not state.\n- evidence must be an exact quote copied from the note, character for character, with no added or removed punctuation.\n- Return ONLY valid JSON, no other text, in this shape:\n{\"diagnoses\":[{\"search_term\":\"...\",\"evidence\":\"...\"}]}\n\nNote:\n{{ $json.note }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -512,
+        -272
+      ],
+      "id": "4706752e-ac49-40eb-9fec-0e3152b271a5",
+      "name": "Extract diagnoses"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "icd-code",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -1024,
+        0
+      ],
+      "id": "7c9ce75f-34bb-4e1b-9ffd-77f00546d551",
+      "name": "Webhook1",
+      "webhookId": "66cafa69-d736-4918-9f3a-aad03f93a2d7"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Extract diagnoses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract diagnoses",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract": {
+      "main": [
+        [
+          {
+            "node": "Find categories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find categories": {
+      "main": [
+        [
+          {
+            "node": "Bundle categories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bundle categories": {
+      "main": [
+        [
+          {
+            "node": "Pick category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Pick category",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick category": {
+      "main": [
+        [
+          {
+            "node": "Check category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check category": {
+      "main": [
+        [
+          {
+            "node": "Load codes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load codes": {
+      "main": [
+        [
+          {
+            "node": "Bundle codes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bundle codes": {
+      "main": [
+        [
+          {
+            "node": "Pick final code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Pick final code",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick final code": {
+      "main": [
+        [
+          {
+            "node": "Final check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract diagnoses": {
+      "main": [
+        [
+          {
+            "node": "Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "c6e0def9-c5ee-4954-bb45-d707efe1eaf2",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "id": "onXLyifgHuioxsZX",
+  "tags": []
+}

@@ -1,0 +1,15 @@
+[
+  {"id":"t01","note":"34-year-old male with 2 days of sore throat and fever. Rapid strep test negative. Assessed as acute pharyngitis.","expected_codes":["J029"],"forbidden_codes":["J020"],"review_expected":false,"tests":"negated strep, symptoms explained by diagnosis"},
+  {"id":"t02","note":"52-year-old woman with type 2 diabetes complicated by diabetic polyneuropathy, with numbness in both feet.","expected_codes":["E1142"],"forbidden_codes":["E119"],"review_expected":false,"tests":"stated complication"},
+  {"id":"t03","note":"61-year-old man with essential hypertension, blood pressure controlled on amlodipine.","expected_codes":["I10"],"forbidden_codes":[],"review_expected":false,"tests":"single-code category"},
+  {"id":"t04","note":"45-year-old with 5 days of cough, assessed as acute bronchitis.","expected_codes":["J209"],"forbidden_codes":[],"review_expected":false,"tests":"unspecified organism"},
+  {"id":"t05","note":"49-year-old woman with hypothyroidism, stable on levothyroxine.","expected_codes":["E039"],"forbidden_codes":[],"review_expected":false,"tests":"common chronic condition"},
+  {"id":"t06","note":"55-year-old man with gastroesophageal reflux disease, symptoms controlled on omeprazole.","expected_codes":["K219"],"forbidden_codes":[],"review_expected":false,"tests":"abbreviation-free default code"},
+  {"id":"t07","note":"9-year-old with mild intermittent asthma, no exacerbation today.","expected_codes":["J4520"],"forbidden_codes":[],"review_expected":false,"tests":"severity and no complication stated"},
+  {"id":"t08","note":"29-year-old woman with a urinary tract infection, treated with nitrofurantoin.","expected_codes":["N390"],"forbidden_codes":[],"review_expected":false,"tests":"site not specified"},
+  {"id":"t09","note":"40-year-old with seasonal allergic rhinitis. Denies chest pain. No evidence of pneumonia on chest exam.","expected_codes":["J302"],"forbidden_codes":[],"forbidden_prefixes":["J12","J13","J14","J15","J16","J17","J18","R07"],"review_expected":false,"tests":"two negations"},
+  {"id":"t10","note":"67-year-old female. Possible pneumonia, chest X-ray pending.","expected_codes":[],"forbidden_codes":[],"forbidden_prefixes":["J12","J13","J14","J15","J16","J17","J18"],"review_expected":true,"tests":"uncertain diagnosis must not be coded"},
+  {"id":"t11","note":"Patient has a broken arm.","expected_codes":[],"forbidden_codes":[],"review_expected":true,"tests":"too vague to code"},
+  {"id":"t12","note":"30-year-old with headache for 3 days, no other complaints.","expected_codes":["R519"],"forbidden_codes":[],"review_expected":false,"tests":"symptom-only note"},
+  {"id":"t13","note":"67-year-old female. HTN and T2DM, both stable.","expected_codes":["I10","E119"],"forbidden_codes":[],"review_expected":false,"tests":"abbreviations, two diagnoses"}
+]

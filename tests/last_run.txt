@@ -1,0 +1,15 @@
+t01 PASS  rows=1  codes=['J029']  review_rows=0  attempts=1  
+t02 PASS  rows=2  codes=['E1142']  review_rows=0  attempts=1  
+t03 PASS  rows=1  codes=['I10']  review_rows=0  attempts=1  
+t04 PASS  rows=1  codes=['J209']  review_rows=0  attempts=1  
+t05 PASS  rows=1  codes=['E039']  review_rows=0  attempts=1  
+t06 PASS  rows=1  codes=['K219']  review_rows=0  attempts=1  
+t07 PASS  rows=1  codes=['J4520']  review_rows=0  attempts=1  
+t08 PASS  rows=1  codes=['N390']  review_rows=0  attempts=1  
+t09 PASS  rows=1  codes=['J302']  review_rows=0  attempts=1  
+t10 PASS  rows=1  codes=[]  review_rows=1  attempts=1  
+t11 PASS  rows=1  codes=[]  review_rows=1  attempts=1  
+t12 PASS  rows=1  codes=['R519']  review_rows=0  attempts=1  
+t13 PASS  rows=2  codes=['E119', 'I10']  review_rows=0  attempts=1  
+
+13/13 cases passed; 0 case(s) with REVIEW rows that were not expected

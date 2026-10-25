@@ -1,0 +1,318 @@
+[
+  {
+    "id": "t01",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "J029"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "acute pharyngitis",
+        "evidence": "Assessed as acute pharyngitis.",
+        "model_code": "J029",
+        "final_code": "J029",
+        "description": "Acute pharyngitis, unspecified",
+        "reason": "Acute pharyngitis unspecified",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t02",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "E1142"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "type 2 diabetes",
+        "evidence": "type 2 diabetes",
+        "model_code": "E1142",
+        "final_code": "E1142",
+        "description": "Type 2 diabetes mellitus with diabetic polyneuropathy",
+        "reason": "Type 2 diabetes with diabetic polyneuropathy",
+        "status": "OK",
+        "flags": ""
+      },
+      {
+        "diagnosis": "diabetic polyneuropathy",
+        "evidence": "diabetic polyneuropathy",
+        "model_code": "E1142",
+        "final_code": "E1142",
+        "description": "Type 2 diabetes mellitus with diabetic polyneuropathy",
+        "reason": "Diabetic polyneuropathy is documented in the note.",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t03",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "I10"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "essential hypertension",
+        "evidence": "essential hypertension",
+        "model_code": "I10",
+        "final_code": "I10",
+        "description": "Essential (primary) hypertension",
+        "reason": "Essential hypertension documented",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t04",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "J209"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "acute bronchitis",
+        "evidence": "assessed as acute bronchitis.",
+        "model_code": "J209",
+        "final_code": "J209",
+        "description": "Acute bronchitis, unspecified",
+        "reason": "Acute bronchitis unspecified",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t05",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "E039"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "hypothyroidism",
+        "evidence": "hypothyroidism",
+        "model_code": "E039",
+        "final_code": "E039",
+        "description": "Hypothyroidism, unspecified",
+        "reason": "Unspecified hypothyroidism",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t06",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "K219"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "gastroesophageal reflux disease",
+        "evidence": "55-year-old man with gastroesophageal reflux disease, symptoms controlled on omeprazole.",
+        "model_code": "K219",
+        "final_code": "K219",
+        "description": "Gastro-esophageal reflux disease without esophagitis",
+        "reason": "GERD without esophagitis",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t07",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "J4520"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "mild intermittent asthma",
+        "evidence": "mild intermittent asthma",
+        "model_code": "J4520",
+        "final_code": "J4520",
+        "description": "Mild intermittent asthma, uncomplicated",
+        "reason": "Mild intermittent asthma without exacerbation",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t08",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "N390"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "urinary tract infection",
+        "evidence": "urinary tract infection",
+        "model_code": "N390",
+        "final_code": "N390",
+        "description": "Urinary tract infection, site not specified",
+        "reason": "Urinary tract infection, site not specified",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t09",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "J302"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "seasonal allergic rhinitis",
+        "evidence": "40-year-old with seasonal allergic rhinitis.",
+        "model_code": "J302",
+        "final_code": "J302",
+        "description": "Other seasonal allergic rhinitis",
+        "reason": "Seasonal allergic rhinitis unspecified cause",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t10",
+    "passed": true,
+    "problems": [],
+    "final_codes": [],
+    "review_rows": 1,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "Possible pneumonia",
+        "evidence": "Possible pneumonia",
+        "model_code": "J18.9",
+        "final_code": null,
+        "description": null,
+        "reason": "Possible pneumonia indicated in note",
+        "status": "REVIEW",
+        "flags": "no_category_selected, uncertain_diagnosis_check_setting, no_categories_found, code_not_in_list"
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t11",
+    "passed": true,
+    "problems": [],
+    "final_codes": [],
+    "review_rows": 1,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "broken arm",
+        "evidence": "Patient has a broken arm.",
+        "model_code": null,
+        "final_code": null,
+        "description": null,
+        "reason": "no code available",
+        "status": "REVIEW",
+        "flags": "no_category_selected, no_categories_found, no_code_selected"
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t12",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "R519"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "headache",
+        "evidence": "30-year-old with headache for 3 days, no other complaints.",
+        "model_code": "R519",
+        "final_code": "R519",
+        "description": "Headache, unspecified",
+        "reason": "Headache unspecified",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  },
+  {
+    "id": "t13",
+    "passed": true,
+    "problems": [],
+    "final_codes": [
+      "E119",
+      "I10"
+    ],
+    "review_rows": 0,
+    "attempts": 1,
+    "rows": [
+      {
+        "diagnosis": "Hypertension",
+        "evidence": "HTN and T2DM, both stable.",
+        "model_code": "I10",
+        "final_code": "I10",
+        "description": "Essential (primary) hypertension",
+        "reason": "Essential hypertension documented",
+        "status": "OK",
+        "flags": ""
+      },
+      {
+        "diagnosis": "Type 2 Diabetes Mellitus",
+        "evidence": "HTN and T2DM, both stable.",
+        "model_code": "E119",
+        "final_code": "E119",
+        "description": "Type 2 diabetes mellitus without complications",
+        "reason": "No complications are documented",
+        "status": "OK",
+        "flags": ""
+      }
+    ],
+    "http_status": 200
+  }
+]
